@@ -630,9 +630,23 @@ Qed.
 
 Theorem plus_swap' : forall n m p : nat,
   n + (m + p) = m + (n + p).
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  Proof.
+  intros n m p.
+  rewrite -> plus_assoc. rewrite -> plus_assoc.
+  replace (m + n) with (n + m).
+  - reflexivity. (* n + m + p ?= n+m+p*)
+  - rewrite -> plus_comm. reflexivity. (* n + m =? m + n*)
+Qed.
+
+(*check if this is ok*)
+(* Theorem plus_swap' : forall n m p : nat,
+  n + (m + p) = m + (n + p).
+  Proof.
+  intros n m p.
+  rewrite plus_assoc. rewrite -> plus_assoc. 
+  rewrite -> (plus_comm n).
+  reflexivity.
+Qed. *)
 
 (** **** Exercise: 3 stars, standard, optional (binary_commute) 
 
