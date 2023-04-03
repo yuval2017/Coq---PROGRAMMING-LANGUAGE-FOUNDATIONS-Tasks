@@ -528,9 +528,12 @@ Qed.
     intros n m.
     induction n as [|n' IH].
     - simpl. reflexivity.
-    - simpl. rewrite IH. rewrite -> plus_assoc.
-    rewrite <- plus_comm. reflexivity.
+    - simpl. rewrite IH. simpl. rewrite -> plus_assoc. 
+    rewrite -> plus_swap. rewrite -> plus_assoc. reflexivity.
   Qed.
+
+
+
 
 Theorem mult_comm : forall m n : nat,
   m * n = n * m.
@@ -608,8 +611,11 @@ Proof.
 Theorem eqb_refl : forall n : nat,
   true = (n =? n).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n.
+  induction n as [| n' IHn'].
+  - reflexivity.
+  - simpl. rewrite <- IHn'. reflexivity.
+Qed.
 
 (** **** Exercise: 2 stars, standard (plus_swap') 
 

@@ -1454,8 +1454,6 @@ Proof.
   - simpl in H. rewrite -> H. reflexivity.
   - simpl in H. rewrite <- H. reflexivity.
   Qed.
-  Check andb_eq_orb.
-
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, optional (binary) 
