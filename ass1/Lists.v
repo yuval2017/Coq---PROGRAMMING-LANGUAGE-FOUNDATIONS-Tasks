@@ -270,7 +270,7 @@ Definition hd (default : nat) (l : natlist) : nat :=
 Definition tl (l : natlist) : natlist :=
   match l with
   | nil => nil
-  | h :: t => t
+  | x :: rest_l => rest_l
   end.
 
 Example test_hd1:             hd 0 [1;2;3] = 1.
@@ -291,11 +291,13 @@ Proof. reflexivity. Qed.
 
 Fixpoint nonzeros (l:natlist) : natlist:=
   match l with
+
   | nil => nil
-  | h :: t => match h with
-              | O => nonzeros t
-              | _ => h :: (nonzeros t)
-              end
+  | x :: rest_l => match x with
+
+            | O => nonzeros rest_l
+            | _ => x :: (nonzeros rest_l)
+            end
   end.
 
 Example test_nonzeros:
@@ -305,9 +307,9 @@ Example test_nonzeros:
 Fixpoint oddmembers (l:natlist) : natlist:=
   match l with
   | nil => nil
-  | h :: t => match oddb h with
-              | true => h :: (oddmembers t)
-              | false => oddmembers t
+  | x :: rest_l => match oddb x with
+              | true => x :: (oddmembers rest_l)
+              | false => oddmembers rest_l
               end
   end.
 Example test_oddmembers:
@@ -348,7 +350,7 @@ Fixpoint alternate (l1 l2 : natlist) : natlist :=
   match l1, l2 with
   | [], l2' => l2' (*l1 is empty return l2*)
   | l1', [] => l1' (*l2 is empty return l1*)
-  | h1::t1, h2::t2 => h1 :: h2 :: (alternate t1 t2) (*have item in them both*)
+  | x1::rest_l1, y1::rest_l2 => x1 :: y1 :: (alternate rest_l1 rest_l2) (*have item in them both*)
   end.
 Example test_alternate1:
   alternate [1;2;3] [4;5;6] = [1;4;2;5;3;6].
@@ -361,6 +363,7 @@ Example test_alternate2:
 Example test_alternate3:
   alternate [1;2;3] [4] = [1;4;2;3].
   Proof. reflexivity. Qed.
+
 Example test_alternate4:
   alternate [] [20;30] = [20;30].
   Proof. reflexivity. Qed.
@@ -383,7 +386,7 @@ Definition bag := natlist.
 Fixpoint count (v : nat) (s : bag) : nat :=
   match s with
   | nil => 0
-  | h :: t => if (Nat.eqb h v) then S (count v t) else count v t
+  | x :: rest_s => if ( x =? v) then S (count v rest_s) else count v rest_s
 end.
 
 (** All these proofs can be done just by [reflexivity]. *)
@@ -445,7 +448,7 @@ Example test_member2:             member 2 [1;4;1] = false.
 Fixpoint remove_one (v : nat) (s : bag) : bag :=
   match s with
   | nil => nil
-  | h :: t => if (v =? h) then t else h :: (remove_one v t)
+  | x :: rest_s => if (v =? x) then rest_s else x :: (remove_one v rest_s)
   end.
 
 Example test_remove_one1:
@@ -467,7 +470,7 @@ Example test_remove_one4:
 Fixpoint remove_all (v:nat) (s:bag) : bag :=
   match s with
   | nil => nil
-  | h :: t => if (v =? h) then (remove_all v t) else h :: (remove_all v t)
+  | x :: rest_s => if ( v =?x) then (remove_all v rest_s) else x :: (remove_all v rest_s )
   end.
 
 Example test_remove_all1:  count 5 (remove_all 5 [2;1;5;4;1]) = 0.
@@ -483,12 +486,12 @@ Fixpoint subset (s1 : bag) (s2 : bag) : bool :=
   match s1 with
   | nil => true
   | x :: sub_s1 =>
-      if negb (count x s1 =? count x s2) then
+      if (count x s1 <=? count x s2) then
         subset sub_s1 (remove_one x s2)
       else
         false
     end.
-
+    
 Example test_subset1:              subset [1;2] [2;1;4;1] = true.
   Proof. simpl. reflexivity. Qed.
 Example test_subset2:              subset [1;2;2] [2;1;4;1] = false.
@@ -845,18 +848,29 @@ Search (?x + ?y = ?y + ?x).
 
 Theorem app_nil_r : forall l : natlist,
   l ++ [] = l.
-Proof.
-  (* FILL IN HERE *) Admitted.
+  Proof.
+    intros l.
+    induction l as [| n l' IHl'].
+      - reflexivity.
+      - simpl. rewrite -> IHl'. reflexivity.
+  Qed.
 
 Theorem rev_app_distr: forall l1 l2 : natlist,
   rev (l1 ++ l2) = rev l2 ++ rev l1.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l1 l2. induction l1 as [| n l1' IHl1'].
+  - simpl. rewrite -> app_nil_r. reflexivity. (*using l ++ [] = l*)
+  - simpl. rewrite -> IHl1'. rewrite -> app_assoc. reflexivity.
+  Qed.
 
 Theorem rev_involutive : forall l : natlist,
   rev (rev l) = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros l.
+    induction l as [| n l' IHl'].
+  - simpl. reflexivity.
+  - simpl. rewrite -> rev_app_distr. rewrite -> IHl'. reflexivity.
+Qed.
 
 (** There is a short solution to the next one.  If you find yourself
     getting tangled up, step back and try to look for a simpler
@@ -865,14 +879,25 @@ Proof.
 Theorem app_assoc4 : forall l1 l2 l3 l4 : natlist,
   l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l1 l2 l3 l4.
+  induction l1 as [| n l1' IHl1'].
+  - simpl. rewrite -> (app_assoc l2).
+    reflexivity.
+  - simpl. rewrite -> IHl1'. reflexivity.
+  Qed.
 
 (** An exercise about your implementation of [nonzeros]: *)
 
 Lemma nonzeros_app : forall l1 l2 : natlist,
   nonzeros (l1 ++ l2) = (nonzeros l1) ++ (nonzeros l2).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l1 l2.
+  induction l1 as [| n l1' IHl1'].
+  - simpl. reflexivity.
+  - simpl. destruct n as [| n'] eqn:E.
+    + simpl. rewrite <- IHl1'. reflexivity.
+    + simpl. rewrite <- IHl1'. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (eqblist) 
@@ -881,26 +906,33 @@ Proof.
     lists of numbers for equality.  Prove that [eqblist l l]
     yields [true] for every list [l]. *)
 
-Fixpoint eqblist (l1 l2 : natlist) : bool
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint eqblist (l1 l2 : natlist) : bool :=
+match l1, l2 with
+| nil, nil => true
 
+| _,nil => false
+| nil,_ => false
+| x :: sub_l1, y :: sub_l2 => (x =? y) && (eqblist sub_l1 sub_l2)
+end.
 Example test_eqblist1 :
   (eqblist nil nil = true).
- (* FILL IN HERE *) Admitted.
-
+  Proof. reflexivity. Qed.
 Example test_eqblist2 :
   eqblist [1;2;3] [1;2;3] = true.
-(* FILL IN HERE *) Admitted.
+  Proof. reflexivity. Qed.
 
 Example test_eqblist3 :
   eqblist [1;2;3] [1;2;4] = false.
- (* FILL IN HERE *) Admitted.
+  Proof. reflexivity. Qed.
 
 Theorem eqblist_refl : forall l:natlist,
   true = eqblist l l.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros l.
+  induction l as [| x l' IHl'].
+  - reflexivity.
+  - simpl. rewrite <- IHl'. rewrite <- eqb_refl. reflexivity.
+Qed.
 
 (* ================================================================= *)
 (** ** List Exercises, Part 2 *)
@@ -911,9 +943,10 @@ Proof.
 (** **** Exercise: 1 star, standard, optional (count_member_nonzero)  *)
 Theorem count_member_nonzero : forall (s : bag),
   1 <=? (count 1 (1 :: s)) = true.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  Proof.
+  intros s. simpl.
+  reflexivity.
+Qed.
 
 (** The following lemma about [leb] might help you in the next exercise. *)
 
@@ -931,9 +964,14 @@ Proof.
 (** **** Exercise: 3 stars, advanced, optional (remove_does_not_increase_count)  *)
 Theorem remove_does_not_increase_count: forall (s : bag),
   (count 0 (remove_one 0 s)) <=? (count 0 s) = true.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  Proof.
+  intros s.
+  induction s as [| n s' IHs'].
+  - reflexivity.
+  - destruct n as [| n'] eqn:E.
+    + simpl. rewrite -> leb_n_Sn. reflexivity.
+    + simpl. rewrite -> IHs'. reflexivity.
+Qed.
 
 (** **** Exercise: 3 stars, standard (bag_count_sum) 
 
@@ -955,8 +993,10 @@ Definition manual_grade_for_bag_count_sum : option (nat*string) := None.
 Theorem rev_injective : forall (l1 l2 : natlist),
     rev l1 = rev l2 -> l1 = l2.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+intros l1 l2 H.
+  rewrite <- rev_involutive. rewrite <- H. 
+  rewrite -> rev_involutive. reflexivity.
+Qed.
 
 (* ################################################################# *)
 (** * Options *)
@@ -1167,7 +1207,17 @@ Inductive baz : Type :=
 (** How _many_ elements does the type [baz] have? (Explain in words,
     in a comment.) *)
 
-(* FILL IN HERE *)
+(* The number of elements of type "baz" is infinite.
+  Explain:
+  "baz" type is defined with two constructors: "Baz1" and "Baz2".
+  lets look ok them:
+    1) "Baz1" - take one argument "x" of type baz.
+    2) "Baz2" - take two arguments "y" of type baz, and "b" of type bool.
+  from 1,2 we see that any constructor of  "baz"
+  lets look on element of time baz:
+  as we see from 1,2 a "baz" type element is construct from another "baz" type, and that "baz" type was constructed from a "baz" type...
+  In conclusion, the "baz" type has infinitely many elements beacuase every element of type "baz" was constructed from another type "baz" :-).
+  *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_baz_num_elts : option (nat*string) := None.

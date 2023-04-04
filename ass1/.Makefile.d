@@ -7,3 +7,6 @@ Induction.vos Induction.vok Induction.required_vos: Induction.v Basics.vos
 Lists.vo Lists.glob Lists.v.beautified Lists.required_vo: Lists.v Induction.vo
 Lists.vio: Lists.v Induction.vio
 Lists.vos Lists.vok Lists.required_vos: Lists.v Induction.vos
+Poly.vo Poly.glob Poly.v.beautified Poly.required_vo: Poly.v Lists.vo
+Poly.vio: Poly.v Lists.vio
+Poly.vos Poly.vok Poly.required_vos: Poly.v Lists.vos

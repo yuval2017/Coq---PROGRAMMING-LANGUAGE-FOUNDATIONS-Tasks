@@ -274,8 +274,7 @@ Proof.
   intros n.
   induction n as [| n' IHn'].
   - simpl. reflexivity.
-  - rewrite -> IHn'.
-    rewrite -> negb_involutive. (* using negb (begb( n')) = n' *)
+  - rewrite -> IHn'. rewrite -> negb_involutive. (* using negb (begb( n')) = n' *)
     reflexivity.
 Qed.
 
@@ -513,16 +512,16 @@ Theorem plus_swap : forall n m p : nat,
   n + (m + p) = m + (n + p).
   Proof.
   intros n m p.
-  rewrite -> plus_comm.
-  rewrite <- plus_assoc.
-  rewrite <- (plus_comm n). (*use plus comm on n and p*)
-  reflexivity.
-Qed.
+  rewrite -> plus_assoc. rewrite -> plus_assoc. 
+  assert (H: n + m = m + n).
+    - rewrite -> plus_comm. reflexivity. 
+    - rewrite H. reflexivity.
+  Qed.
 
 (** Now prove commutativity of multiplication.  You will probably
     want to define and prove a "helper" theorem to be used
     in the proof of this one. Hint: what is [n * (1 + k)]? *)
-  Theorem mult_n_Sm : forall n m : nat,
+  Theorem comm_helper : forall n m : nat,
   n * S m = n + n * m.
   Proof.
     intros n m.
@@ -541,7 +540,7 @@ Theorem mult_comm : forall m n : nat,
   intros m n.
   induction m as [|m' IH].
   - rewrite <- mult_n_O. reflexivity.
-  - simpl. rewrite IH. rewrite <- mult_n_Sm. reflexivity.
+  - simpl. rewrite IH. rewrite <- comm_helper. reflexivity.
 Qed.
 (** [] *)
 
