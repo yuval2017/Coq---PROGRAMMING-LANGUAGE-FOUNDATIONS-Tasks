@@ -1417,7 +1417,8 @@ Theorem identity_fn_applied_twice :
 Proof.
   intros f H c.
   rewrite -> H.
-  rewrite -> H. reflexivity.
+  rewrite -> H.
+reflexivity.
   Qed.
 
 (** [] *)
