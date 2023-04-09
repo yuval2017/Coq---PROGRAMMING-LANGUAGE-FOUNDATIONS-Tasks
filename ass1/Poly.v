@@ -148,15 +148,14 @@ Inductive grumble (X:Type) : Type :=
 
 (** Which of the following are well-typed elements of [grumble X] for
     some type [X]?  (Add YES or NO to each line.)
-      - [d (b a 5)]
-      - [d mumble (b a 5)]
-      - [d bool (b a 5)]
-      - [e bool true]
-      - [e mumble (b c 0)]
-      - [e bool (b c 0)]
-      - [c]  *)
+      - [d (b a 5)] YES
+      - [d mumble (b a 5)] NO
+      - [d bool (b a 5)] NO
+      - [e bool true] YES
+      - [e mumble (b c 0)] YES
+      - [e bool (b c 0)] NO
+      - [c] NO  *) 
 (* FILL IN HERE *)
-End MumbleGrumble.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_mumble_grumble : option (nat*string) := None.
@@ -392,8 +391,12 @@ Definition list123''' := [1; 2; 3].
 
 Theorem app_nil_r : forall (X:Type), forall l:list X,
   l ++ [] = l.
-Proof.
-  (* FILL IN HERE *) Admitted.
+  Proof.
+  intros X l.
+  induction l as [| n l' IHl'].
+    - reflexivity.
+    - simpl. rewrite -> IHl'. reflexivity.
+Qed.
 
 Theorem app_assoc : forall A (l m n:list A),
   l ++ m ++ n = (l ++ m) ++ n.
@@ -412,14 +415,21 @@ Proof.
 
 Theorem rev_app_distr: forall X (l1 l2 : list X),
   rev (l1 ++ l2) = rev l2 ++ rev l1.
-Proof.
-  (* FILL IN HERE *) Admitted.
+  Proof.
+  intros X l1 l2.
+  induction l1 as [| x l1' IHl1'].
+  - simpl. rewrite app_nil_r. reflexivity.
+  - simpl. rewrite IHl1'. rewrite -> app_assoc. reflexivity.
+Qed.
 
 Theorem rev_involutive : forall X : Type, forall l : list X,
   rev (rev l) = l.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  Proof.
+  intros X l.
+      induction l as [| x l' IHl'].
+    - simpl. reflexivity.
+    - simpl. rewrite -> rev_app_distr. rewrite -> IHl'. reflexivity.
+  Qed.
 
 (* ================================================================= *)
 (** ** Polymorphic Pairs *)
@@ -495,7 +505,8 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
 
 (** **** Exercise: 2 stars, standard, especially useful (split) 
 
-    The function [split] is the right inverse of [combine]: it takes a
+    The function [split] is the
+     right inverse of [combine]: it takes a
     list of pairs and returns a pair of lists.  In many functional
     languages, it is called [unzip].
 
@@ -503,14 +514,20 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
     given unit test. *)
 
 Fixpoint split {X Y : Type} (l : list (X*Y))
-               : (list X) * (list Y)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+               : (list X) * (list Y) :=
+               match l with
+                | [] => ([], [])
+                | (xi,yi) :: rest_l => 
 
+                  match (split rest_l) with
+                        | (x, y) => (xi :: x, yi :: y)
+                      end
+              end.
+
+              
 Example test_split:
   split [(1,false);(2,false)] = ([1;2],[false;false]).
-Proof.
-(* FILL IN HERE *) Admitted.
-(** [] *)
+Proof. simpl. reflexivity. Qed.
 
 (* ================================================================= *)
 (** ** Polymorphic Options *)
@@ -715,13 +732,13 @@ Example test_filter_even_gt7_2 :
 Definition partition {X : Type}
                      (test : X -> bool)
                      (l : list X)
-                   : list X * list X
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+                   : list X * list X := 
+  (filter test l, filter (fun xi => negb (test xi)) l).
 
 Example test_partition1: partition oddb [1;2;3;4;5] = ([1;3;5], [2;4]).
-(* FILL IN HERE *) Admitted.
+  Proof. reflexivity. Qed.
 Example test_partition2: partition (fun x => false) [5;9;0] = ([], [5;9;0]).
-(* FILL IN HERE *) Admitted.
+  Proof. reflexivity. Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -768,11 +785,22 @@ Proof. reflexivity. Qed.
     Show that [map] and [rev] commute.  You may need to define an
     auxiliary lemma. *)
 
+Lemma auxiliary_lema : forall (X Y : Type) (f : X -> Y) (l1 l2 : list X),
+    map f (l1 ++ l2) = (map f l1) ++ (map f l2). 
+  intros X Y f l1 l2.
+  induction l1 as [| x l1' ITHl1'].
+    - simpl. reflexivity.
+    - simpl. rewrite -> ITHl1'. reflexivity.
+    Qed.
+
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
   map f (rev l) = rev (map f l).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros X Y f l.
+  induction l as [| x l' IHl'].
+  - simpl. reflexivity.
+  - simpl. rewrite <- IHl'. rewrite -> auxiliary_lema. simpl. reflexivity.
+  Qed.
 
 (** **** Exercise: 2 stars, standard, especially useful (flat_map) 
 
@@ -994,8 +1022,10 @@ Definition prod_curry {X Y Z : Type}
     the theorems below to show that the two are inverses. *)
 
 Definition prod_uncurry {X Y Z : Type}
-  (f : X -> Y -> Z) (p : X * Y) : Z
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+  (f : X -> Y -> Z) (p : X * Y) : Z :=
+      match p with 
+      | (x, y) => f x y
+      end.
 
 (** As a (trivial) example of the usefulness of currying, we can use it
     to shorten one of the examples that we saw above: *)
@@ -1013,15 +1043,21 @@ Theorem uncurry_curry : forall (X Y Z : Type)
                         (f : X -> Y -> Z)
                         x y,
   prod_curry (prod_uncurry f) x y = f x y.
-Proof.
-  (* FILL IN HERE *) Admitted.
+  Proof.
+  intros X Y Z f x y.
+  unfold prod_curry. simpl. (* f x y = f x y *)
+  reflexivity.
+  Qed.
 
 Theorem curry_uncurry : forall (X Y Z : Type)
                         (f : (X * Y) -> Z) (p : X * Y),
   prod_uncurry (prod_curry f) p = f p.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  Proof.
+  intros X Y Z f p.
+  destruct p as [x y] eqn:E.
+    simpl. unfold prod_curry. (* f(x, y) = f(x, y)*)
+     reflexivity.
+Qed.
 
 (** **** Exercise: 2 stars, advanced (nth_error_informal) 
 
@@ -1157,8 +1193,11 @@ Example exp_3 : exp three two = plus (mult two (mult two two)) one.
 Proof. (* FILL IN HERE *) Admitted.
 
 (** [] *)
-
 End Church.
 End Exercises.
+
+
+
+
 
 (* 2020-11-01 19:10 *)
