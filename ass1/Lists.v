@@ -292,12 +292,11 @@ Proof. reflexivity. Qed.
 Fixpoint nonzeros (l:natlist) : natlist:=
   match l with
 
-  | nil => nil
-  | x :: rest_l => match x with
-
-            | O => nonzeros rest_l
-            | _ => x :: (nonzeros rest_l)
-            end
+    | nil => nil
+    | x :: rest_l => match x with
+              | O => nonzeros rest_l
+              | _ => x :: (nonzeros rest_l)
+              end
   end.
 
 Example test_nonzeros:
@@ -306,11 +305,11 @@ Example test_nonzeros:
 
 Fixpoint oddmembers (l:natlist) : natlist:=
   match l with
-  | nil => nil
-  | x :: rest_l => match oddb x with
-              | true => x :: (oddmembers rest_l)
-              | false => oddmembers rest_l
-              end
+    | nil => nil
+    | x :: rest_l => match oddb x with
+                      | true => x :: (oddmembers rest_l)
+                      | false => oddmembers rest_l
+                      end
   end.
 Example test_oddmembers:
   oddmembers [0;1;0;2;3;0;0] = [1;3].
@@ -348,9 +347,9 @@ Example test_countoddmembers3:
 
 Fixpoint alternate (l1 l2 : natlist) : natlist :=
   match l1, l2 with
-  | [], l2' => l2' (*l1 is empty return l2*)
-  | l1', [] => l1' (*l2 is empty return l1*)
-  | x1::rest_l1, y1::rest_l2 => x1 :: y1 :: (alternate rest_l1 rest_l2) (*have item in them both*)
+    | [], l2' => l2' (*l1 is empty return l2*)
+    | l1', [] => l1' (*l2 is empty return l1*)
+    | x1::rest_l1, y1::rest_l2 => x1 :: y1 :: (alternate rest_l1 rest_l2) (*have item in them both*)
   end.
 Example test_alternate1:
   alternate [1;2;3] [4;5;6] = [1;4;2;5;3;6].
@@ -385,8 +384,8 @@ Definition bag := natlist.
 
 Fixpoint count (v : nat) (s : bag) : nat :=
   match s with
-  | nil => 0
-  | x :: rest_s => if ( x =? v) then S (count v rest_s) else count v rest_s
+    | nil => 0
+    | x :: rest_s => if ( x =? v) then S (count v rest_s) else count v rest_s
 end.
 
 (** All these proofs can be done just by [reflexivity]. *)
@@ -409,7 +408,7 @@ Example test_count2:              count 6 [1;2;3;1;4;1] = 0.
     using one or more functions that have already been defined.  *)
 
 Definition sum : bag -> bag -> bag
-:= alternate. (*like in the hint*)
+  := alternate. (*like in the hint*)
 
 Example test_sum1:              count 1 (sum [1;2;3] [1;4;1]) = 3.
   Proof. reflexivity. Qed.
@@ -424,8 +423,8 @@ Example test_add2:                count 5 (add 1 [1;4;1]) = 0.
 
 Definition member (v : nat) (s : bag) : bool :=
   match (count v s) with
-  | O => false
-  | _ => true
+    | O => false
+    | _ => true
   end. (* using the count function we declered earlier *)
 
 Example test_member1:             member 1 [1;4;1] = true.
@@ -447,8 +446,8 @@ Example test_member2:             member 2 [1;4;1] = false.
 
 Fixpoint remove_one (v : nat) (s : bag) : bag :=
   match s with
-  | nil => nil
-  | x :: rest_s => if (v =? x) then rest_s else x :: (remove_one v rest_s)
+    | nil => nil
+    | x :: rest_s => if (v =? x) then rest_s else x :: (remove_one v rest_s)
   end.
 
 Example test_remove_one1:
@@ -469,8 +468,11 @@ Example test_remove_one4:
 
 Fixpoint remove_all (v:nat) (s:bag) : bag :=
   match s with
-  | nil => nil
-  | x :: rest_s => if ( v =?x) then (remove_all v rest_s) else x :: (remove_all v rest_s )
+    | nil => nil
+    | x :: rest_s => if ( v =? x) then 
+                      (remove_all v rest_s)
+                    else 
+                      x :: (remove_all v rest_s )
   end.
 
 Example test_remove_all1:  count 5 (remove_all 5 [2;1;5;4;1]) = 0.
@@ -484,12 +486,12 @@ Example test_remove_all4:  count 5 (remove_all 5 [2;1;5;4;5;1;4;5;1;4]) = 0.
 
 Fixpoint subset (s1 : bag) (s2 : bag) : bool :=
   match s1 with
-  | nil => true
-  | x :: sub_s1 =>
-      if (count x s1 <=? count x s2) then
-        subset sub_s1 (remove_one x s2)
-      else
-        false
+    | nil => true
+    | x :: sub_s1 =>
+        if (count x s1 <=? count x s2) then
+          subset sub_s1 (remove_one x s2)
+        else
+          false
     end.
     
 Example test_subset1:              subset [1;2] [2;1;4;1] = true.
@@ -859,15 +861,15 @@ Theorem rev_app_distr: forall l1 l2 : natlist,
   rev (l1 ++ l2) = rev l2 ++ rev l1.
 Proof.
   intros l1 l2. induction l1 as [| n l1' IHl1'].
-  - simpl. rewrite -> app_nil_r. reflexivity. (*using l ++ [] = l*)
-  - simpl. rewrite -> IHl1'. rewrite -> app_assoc. reflexivity.
+    - simpl. rewrite -> app_nil_r. reflexivity. (*using l ++ [] = l*)
+    - simpl. rewrite -> IHl1'. rewrite -> app_assoc. reflexivity.
   Qed.
 
 Theorem rev_involutive : forall l : natlist,
   rev (rev l) = l.
 Proof.
-intros l.
-    induction l as [| n l' IHl'].
+  intros l.
+  induction l as [| n l' IHl'].
   - simpl. reflexivity.
   - simpl. rewrite -> rev_app_distr. rewrite -> IHl'. reflexivity.
 Qed.
@@ -881,7 +883,7 @@ Theorem app_assoc4 : forall l1 l2 l3 l4 : natlist,
 Proof.
   intros l1 l2 l3 l4.
   induction l1 as [| n l1' IHl1'].
-  - simpl. rewrite -> (app_assoc l2).
+  - simpl. rewrite -> app_assoc.
     reflexivity.
   - simpl. rewrite -> IHl1'. reflexivity.
   Qed.

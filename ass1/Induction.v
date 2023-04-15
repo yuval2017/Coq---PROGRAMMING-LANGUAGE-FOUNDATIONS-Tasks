@@ -224,7 +224,7 @@ Theorem plus_comm : forall n m : nat,
 Proof.
   intros n m.
   induction n as [| n' IHn'].
-  - simpl. rewrite <- plus_n_O. reflexivity. (* using theory m = m + 0 *)
+  - simpl. rewrite <- plus_n_O. reflexivity. (* using theorem m = m + 0 *)
   - simpl. rewrite -> IHn'. rewrite <- plus_n_Sm. reflexivity. (*using last theory S (m + n') = m + S (n')*)
 Qed.
 
@@ -306,9 +306,10 @@ Theorem mult_0_plus' : forall n m : nat,
   (0 + n) * m = n * m.
 Proof.
   intros n m.
-  assert (H: 0 + n = n). { reflexivity. }
-  rewrite -> H.
-  reflexivity.  Qed.
+  assert (H: 0 + n = n). 
+  - simpl. reflexivity. 
+  - rewrite -> H. reflexivity.  
+  Qed.
 
 (** The [assert] tactic introduces two sub-goals.  The first is
     the assertion itself; by prefixing it with [H:] we name the
@@ -633,11 +634,11 @@ Theorem plus_swap' : forall n m p : nat,
   intros n m p.
   rewrite -> plus_assoc. rewrite -> plus_assoc.
   replace (m + n) with (n + m).
-  - reflexivity. (* n + m + p ?= n+m+p*)
-  - rewrite -> plus_comm. reflexivity. (* n + m =? m + n*)
+  - reflexivity. (* n + m + p = n+m+p*)
+  - rewrite -> plus_comm. reflexivity. (* n + m = m + n*)
 Qed.
 
-(*check if this is ok*)
+(*check if this is ok - another solution without replace*)
 (* Theorem plus_swap' : forall n m p : nat,
   n + (m + p) = m + (n + p).
   Proof.

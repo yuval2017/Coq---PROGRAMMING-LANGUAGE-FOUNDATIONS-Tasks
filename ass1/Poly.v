@@ -156,6 +156,7 @@ Inductive grumble (X:Type) : Type :=
       - [e bool (b c 0)] NO
       - [c] NO  *) 
 (* FILL IN HERE *)
+End MumbleGrumble.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_mumble_grumble : option (nat*string) := None.
@@ -400,8 +401,12 @@ Qed.
 
 Theorem app_assoc : forall A (l m n:list A),
   l ++ m ++ n = (l ++ m) ++ n.
-Proof.
-  (* FILL IN HERE *) Admitted.
+  Proof.
+  intros A l m n.
+  induction l as [| x xs IH].
+  - simpl. reflexivity.
+  - simpl. rewrite IH. reflexivity.
+Qed.
 
 Lemma app_length : forall (X:Type) (l1 l2 : list X),
   length (l1 ++ l2) = length l1 + length l2.
@@ -552,15 +557,15 @@ End OptionPlayground.
 (** We can now rewrite the [nth_error] function so that it works
     with any type of lists. *)
 
-Fixpoint nth_error {X : Type} (l : list X) (n : nat)
-                   : option X :=
+Fixpoint nth_error {X : Type} (l : list X) (n : nat): option X :=
+     
   match l with
-  | nil => None
-  | a :: l' => match n with
-               | O => Some a
-               | S n' => nth_error l' n'
-               end
-  end.
+      | nil => None
+      | a :: l' => match n with
+              | O => Some a
+              | S n' => nth_error l' n'
+      end
+end.
 
 Example test_nth_error1 : nth_error [4;5;6;7] 0 = Some 4.
 Proof. reflexivity. Qed.
@@ -1044,9 +1049,9 @@ Theorem uncurry_curry : forall (X Y Z : Type)
                         x y,
   prod_curry (prod_uncurry f) x y = f x y.
   Proof.
-  intros X Y Z f x y.
-  unfold prod_curry. simpl. (* f x y = f x y *)
-  reflexivity.
+    intros X Y Z f x y.
+    unfold prod_curry. simpl. (* f x y = f x y *)
+    reflexivity.
   Qed.
 
 Theorem curry_uncurry : forall (X Y Z : Type)

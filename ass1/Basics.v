@@ -1268,10 +1268,10 @@ Theorem andb_true_elim2 : forall b c : bool,
   intros b c.
   intros H.
   destruct b eqn:Ed.
-  - simpl in H. rewrite H. reflexivity.
+  - simpl in H. rewrite -> H. reflexivity.
   - simpl in H. destruct c eqn:Ec.
     + reflexivity.
-    + rewrite H. reflexivity.
+    + rewrite -> H. reflexivity.
 Qed.
 
 
@@ -1417,8 +1417,7 @@ Theorem identity_fn_applied_twice :
 Proof.
   intros f H c.
   rewrite -> H.
-  rewrite -> H.
-reflexivity.
+  rewrite -> H. reflexivity.
   Qed.
 
 (** [] *)
@@ -1500,9 +1499,9 @@ end.
 
 Fixpoint bin_to_nat (m:bin) : nat :=
   match m with
-  | Z => O
-  | B0 m' => 2 * bin_to_nat m'
-  | B1 m' => 1 + 2 * bin_to_nat m'
+    | Z => O
+    | B0 m' => 2 * bin_to_nat m'
+    | B1 m' => 1 + 2 * bin_to_nat m'
   end.
 
 Example test_bin_incr1 : (incr (B1 Z)) = B0 (B1 Z).
