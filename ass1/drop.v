@@ -71,10 +71,11 @@ Qed.
 
 
 (*proof 2*)
-Theorem drop_n_after_cons : forall (A: Type) (n: nat) (x: A) (lst: list A),
-  drop n (S n) (x :: lst) = drop n n lst.
+Theorem drop_n_after_cons : forall (A: Type) (n m : nat) (x: A) (lst: list A),
+  m = n -> drop n (S m) (x :: lst) = drop n m lst.
 Proof.
-  intros A n x lst.
+  intros A n m x lst H.
+  rewrite H. 
   destruct n.
   - destruct lst as [|y lst'] eqn:E.
     + simpl. reflexivity.

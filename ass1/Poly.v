@@ -148,13 +148,13 @@ Inductive grumble (X:Type) : Type :=
 
 (** Which of the following are well-typed elements of [grumble X] for
     some type [X]?  (Add YES or NO to each line.)
-      - [d (b a 5)] YES
-      - [d mumble (b a 5)] NO
-      - [d bool (b a 5)] NO
+      - [d (b a 5)] NO - b a 5 have type mumbel
+      - [d mumble (b a 5)] YES
+      - [d bool (b a 5)] YES
       - [e bool true] YES
       - [e mumble (b c 0)] YES
-      - [e bool (b c 0)] NO
-      - [c] NO  *) 
+      - [e bool (b c 0)] NO - b c 0 have time mumble and it expecten type bool
+      - [c] NO - have type mumbel  *) 
 (* FILL IN HERE *)
 End MumbleGrumble.
 
