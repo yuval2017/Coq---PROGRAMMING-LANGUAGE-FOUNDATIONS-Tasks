@@ -1209,7 +1209,7 @@ Inductive baz : Type :=
 (** How _many_ elements does the type [baz] have? (Explain in words,
     in a comment.) *)
 
-(* The number of elements of type "baz" is infinite.
+(* The number of elements of type "baz" is zero (0).
   Explain:
   "baz" type is defined with two constructors: "Baz1" and "Baz2".
   lets look ok them:
@@ -1218,7 +1218,8 @@ Inductive baz : Type :=
   from 1,2 we see that any constructor of  "baz"
   lets look on element of time baz:
   as we see from 1,2 a "baz" type element is construct from another "baz" type, and that "baz" type was constructed from a "baz" type...
-  In conclusion, the "baz" type has infinitely many elements beacuase every element of type "baz" was constructed from another type "baz" :-).
+  In conclusion, every element of type "baz" was constructed from another type "baz" :-).
+  so we can't define type baz, hence the numbers ob elemnts of type baz is zero (0)
   *)
 
 (* Do not modify the following line: *)
