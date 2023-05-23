@@ -1730,7 +1730,7 @@ Definition implies_to_or := forall P Q:Prop,
   (P->Q) -> (~P\/Q).
 
 
-Lemma peirce_implies_double_negation_elimination: peirce -> double_negation_elimination.
+Theorem peirce_implies_double_negation_elimination: peirce -> double_negation_elimination.
 Proof. intros P. 
   unfold peirce in P. unfold double_negation_elimination.
   intros. unfold not in H.
@@ -1741,7 +1741,7 @@ Qed.
 
 
 
-Lemma double_negation_elimination_implies_de_morgan_not_and_not : double_negation_elimination -> de_morgan_not_and_not.
+Theorem double_negation_elimination_implies_de_morgan_not_and_not : double_negation_elimination -> de_morgan_not_and_not.
 Proof.
   intros DNE.
   unfold double_negation_elimination in DNE. unfold de_morgan_not_and_not.
@@ -1760,7 +1760,7 @@ Qed.
 
 
 
-Lemma de_morgan_not_and_not_implies_implies_to_or : de_morgan_not_and_not -> implies_to_or.
+Theorem de_morgan_not_and_not_implies_implies_to_or : de_morgan_not_and_not -> implies_to_or.
 Proof.
   intros DMNAN P Q H.
   unfold de_morgan_not_and_not in DMNAN.
@@ -1776,17 +1776,23 @@ Proof.
   apply H. apply H0.
 Qed.
 
-Lemma implies_to_or_implies_peirce: implies_to_or -> peirce.
+Theorem implies_to_or_excluded_middle: implies_to_or -> excluded_middle -> peirce.
 Proof.
-
-
-  (* FILL IN HERE *) Admitted.
-
-Theorem circular: peirce -> double_negation_elimination -> de_morgan_not_and_not -> implies_to_or -> peirce.
-Proof.
-  intros P DNE DMNAN ITO.
-  apply (implies_to_or_implies_peirce ITO).
+  intros ITO EM.
+  unfold implies_to_or in ITO.
+  unfold excluded_middle in EM.
+  unfold peirce.
+  intros P Q HPQ.
+  destruct (EM P) as [HP | HnP].
+  - apply HP.
+  - apply HPQ.
+    intros HP.
+    exfalso. apply HnP. apply HP.
 Qed.
+
+
+
+
 
 
 
