@@ -773,13 +773,40 @@ Definition manual_grade_for_R_provability : option (nat*string) := None.
     Figure out which function; then state and prove this equivalence
     in Coq? *)
 
-Definition fR : nat -> nat -> nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition fR : nat -> nat -> nat := 
+    plus.
+
+Lemma add_0_eq : forall m o, m + 0 = o -> m = o.
+Proof.
+  intros m o H.
+  rewrite <- plus_n_O in H.
+  apply H.
+Qed.
+
+
 
 Theorem R_equiv_fR : forall m n o, R m n o <-> fR m n = o.
+
 Proof.
-(* FILL IN HERE *) Admitted.
-(** [] *)
+  intros m n o.
+  split.
+  - intros H. unfold fR.
+    induction H.
+    + reflexivity.
+    + simpl. rewrite IHR. reflexivity.
+    + rewrite <- plus_n_Sm. rewrite IHR. reflexivity.
+    + simpl in IHR.  apply S_injective in IHR. rewrite <- plus_n_Sm in IHR. apply S_injective in IHR. apply IHR
+    + intros. 
+    + destruct n.
+      * simpl. rewrite <- plus_n_O in IHR. apply IHR.
+      * simpl in H. rewrite plus_comm. apply IHR. 
+  - unfold fR. intros. destruct H.
+    induction m as [|m' IHm].
+     + induction n as [|n' IHn].
+        * apply c1.
+        * apply c3. simpl in IHn. assumption.
+    + simpl. apply c2. assumption.
+Qed.
 
 End R.
 
@@ -1743,7 +1770,36 @@ Definition manual_grade_for_nostutter : option (nat*string) := None.
     to be a merge of two others.  Do this with an inductive relation,
     not a [Fixpoint].)  *)
 
-(* FILL IN HERE *)
+Inductive merge {X : Type} : list X -> list X -> list X -> Prop :=
+  | merge_nil : merge [] [] []
+  | merge_left : forall x l1 l2 l, merge l1 l2 l -> merge (x :: l1) l2 (x :: l)
+  | merge_right : forall x l1 l2 l, merge l1 l2 l -> merge l1 (x :: l2) (x :: l).
+
+
+
+
+
+
+Theorem filter_challenge : forall (X : Type) (test : X -> bool) (l l1 l2 : list X),
+  merge l1 l2 l ->
+  (forall x, In x l1 -> test x = true) ->
+  (forall x, In x l2 -> test x = false) ->
+  filter test l = l1.
+Proof.
+  intros X test l l1 l2 H_merge H_test1 H_test2.
+  induction H_merge as [| x l1 l2 l' H_merge IH1 | x l1 l2 l' H_merge IH2].
+  - reflexivity.
+  - simpl. rewrite H_test1.
+    + rewrite IH1. reflexivity.
+      * intros. apply H_test1. simpl. right. assumption.    
+      * intros. apply H_test2. assumption. 
+    + simpl. left. reflexivity.
+  - simpl. rewrite H_test2.
+    + apply IH2.
+      * intros. apply H_test1. assumption.
+      * intros. apply H_test2. simpl. right. assumption.
+    + simpl. left. reflexivity.
+Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_filter_challenge : option (nat*string) := None.
