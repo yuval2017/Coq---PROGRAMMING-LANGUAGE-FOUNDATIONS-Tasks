@@ -449,7 +449,13 @@ Definition manual_grade_for_double_neg_inf : option (nat*string) := None.
 Theorem contrapositive : forall (P Q : Prop),
   (P -> Q) -> (~Q -> ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P Q H.
+  unfold not.
+  intros H1 H2.
+  apply H1.
+  apply H.
+  apply H2.
+Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, standard (not_both_true_and_false)  *)
@@ -700,7 +706,13 @@ Proof.
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X P H.
+  unfold not.
+  intros H1.
+  destruct H1 as [x H1].
+  apply H1.
+  apply H.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (dist_exists_or) 
@@ -796,7 +808,32 @@ Theorem In_map_iff :
     exists x, f x = y /\ In x l.
 Proof.
   intros A B f l y. split.
-  (* FILL IN HERE *) Admitted.
+  - (* -> *)
+    intros H. induction l as [| x l' IHl'].
+    + (* l = [] *)
+      simpl in H. contradiction.
+    + (* l = x :: l' *)
+      simpl in H. destruct H as [H | H].
+       (* y = f x *)
+      * exists x. split.
+        apply H.
+        simpl. left. reflexivity.
+       (* In y (map f l') *)
+      * apply IHl' in H. destruct H as [x' [H1 H2]].
+        exists x'. split.
+        apply H1.
+        simpl. right. apply H2.
+  - (* <- *)
+    intros [x [H1 H2]]. induction l as [| x' l' IHl'].
+    + (* l = [] *)
+      simpl in H2. contradiction.
+    + (* l = x' :: l' *)
+      simpl in H2. destruct H2 as [H2 | H2].
+      * (* x = x' *)
+        simpl. left. rewrite -> H2. apply H1.
+      * (* In x l' *)
+        simpl. right. apply IHl'. apply H2.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (In_app_iff)  *)
@@ -819,15 +856,38 @@ Proof.
     lemma below.  (Of course, your definition should _not_ just
     restate the left-hand side of [All_In].) *)
 
-Fixpoint All {T : Type} (P : T -> Prop) (l : list T) : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint All {T : Type} (P : T -> Prop) (l : list T) : Prop :=
+ match l with
+  | [] => True
+  | x :: xs => P x /\ All P xs
+  end.
 
 Theorem All_In :
   forall T (P : T -> Prop) (l : list T),
     (forall x, In x l -> P x) <->
     All P l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T P l. split.
+  - (* -> *)
+    intros H. induction l as [| x l' IHl'].
+    + (* l = [] *)
+      simpl. reflexivity.
+    + (* l = x :: l' *)
+      simpl. split.
+      * apply H. simpl. left. reflexivity.
+      * apply IHl'. intros x' H'. apply H. simpl. right. apply H'.
+  - (* <- *)
+    intros H. induction l as [| x l' IHl'].
+    + (* l = [] *)
+      intros x H'. simpl in H'. contradiction H'.
+    + (* l = x :: l' *)
+      intros x' H'. simpl in H'. destruct H as [H1 H2].
+      destruct H'.
+      * (* x' = x *)
+        rewrite H in H1. apply H1.
+      * (* In x' l' *)
+        apply IHl'. apply H2. apply H.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (combine_odd_even) 
@@ -1174,11 +1234,37 @@ Definition tr_rev {X} (l : list X) : list X :=
     recursive call); a decent compiler will generate very efficient
     code in this case.
 
+
     Prove that the two definitions are indeed equivalent. *)
+Lemma app_assoc_reverse : forall X (l1 l2 l3 : list X),
+  l1 ++ (l2 ++ l3) = (l1 ++ l2) ++ l3.
+Proof.
+  intros X l1 l2 l3. rewrite app_assoc. reflexivity.
+Qed.
+Lemma rev_append_correct : forall X (l1 l2 : list X), rev_append l1 l2 = rev l1 ++ l2.
+Proof.
+  intros X l1.
+  induction l1 as [| x l1' IHl1'].
+  - (* l1 = [] *)
+    intros l2.
+    simpl.
+    reflexivity.
+  - (* l1 = x :: l1' *)
+    intros l2.
+    simpl.
+    rewrite IHl1'.
+    rewrite <- app_assoc_reverse.
+    reflexivity.
+Qed.
 
 Theorem tr_rev_correct : forall X, @tr_rev X = @rev X.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros X. apply functional_extensionality. intros x.
+  unfold tr_rev.
+  rewrite rev_append_correct.
+  rewrite app_nil_r.
+  reflexivity.
+Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -1475,7 +1561,7 @@ Definition excluded_middle := forall P : Prop,
     we just have to check the value of [b]. *)
 
 Theorem restricted_excluded_middle : forall P b,
-  (P <-> b = true) -> P \/ ~ P.
+  (P <-> b = true) -> P \/ P.
 Proof.
   intros P [] H.
   - left. rewrite H. reflexivity.
@@ -1605,7 +1691,14 @@ Theorem not_exists_dist :
   forall (X:Type) (P : X -> Prop),
     ~ (exists x, ~ P x) -> (forall x, P x).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros EM X P H x.
+  destruct (EM (P x)) as [HPx | HnotPx].
+  - (* P x *)
+    apply HPx.
+  - (* ~ P x *)
+    exfalso.
+    apply H. exists x. apply HnotPx.
+Qed.
 (** [] *)
 
 (** **** Exercise: 5 stars, standard, optional (classical_axioms) 
@@ -1636,8 +1729,69 @@ Definition de_morgan_not_and_not := forall P Q:Prop,
 Definition implies_to_or := forall P Q:Prop,
   (P->Q) -> (~P\/Q).
 
-(* FILL IN HERE
 
-    [] *)
+Lemma peirce_implies_double_negation_elimination: peirce -> double_negation_elimination.
+Proof. intros P. 
+  unfold peirce in P. unfold double_negation_elimination.
+  intros. unfold not in H.
+  apply P with (Q:= False).
+  intro. apply H in H0. 
+  inversion H0.
+Qed.
+
+
+
+Lemma double_negation_elimination_implies_de_morgan_not_and_not : double_negation_elimination -> de_morgan_not_and_not.
+Proof.
+  intros DNE.
+  unfold double_negation_elimination in DNE. unfold de_morgan_not_and_not.
+  intros. unfold not in H.
+  apply DNE.
+  intros not_not_PQ.
+  unfold not in not_not_PQ.
+  apply H.
+  
+  split.
+  - intros.
+    apply not_not_PQ. left. apply H0.
+  - intros.
+    apply not_not_PQ. right. apply H0.
+Qed.
+
+
+
+Lemma de_morgan_not_and_not_implies_implies_to_or : de_morgan_not_and_not -> implies_to_or.
+Proof.
+  intros DMNAN P Q H.
+  unfold de_morgan_not_and_not in DMNAN.
+  unfold implies_to_or.
+  intros.
+  intros.
+  apply DMNAN. unfold not.
+  intros not_P_not_Q.
+  destruct not_P_not_Q as [not_P not_Q].
+  apply not_P.
+  intros.
+  apply not_Q.
+  apply H. apply H0.
+Qed.
+
+Lemma implies_to_or_implies_peirce: implies_to_or -> peirce.
+Proof.
+
+
+  (* FILL IN HERE *) Admitted.
+
+Theorem circular: peirce -> double_negation_elimination -> de_morgan_not_and_not -> implies_to_or -> peirce.
+Proof.
+  intros P DNE DMNAN ITO.
+  apply (implies_to_or_implies_peirce ITO).
+Qed.
+
+
+
+
+
+
 
 (* 2020-11-01 19:10 *)
