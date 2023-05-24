@@ -2000,28 +2000,9 @@ Proof.
   - simpl. rewrite IHn'. rewrite <- plus_n_Sm. reflexivity.
 Qed.
 
+
+
 Theorem pigeonhole_principle: excluded_middle ->
-  forall (X:Type) (l1  l2:list X),
-  (forall x, In x l1 -> In x l2) ->
-  length l2 < length l1 ->
-  repeats l1.
-Proof.
-  intros EM X l1. induction l1 as [|x l1' IHl1'].
-  - intros. inversion H0.
-  - intros. destruct (EM (In x l1')) as [HIn | HnIn].
-    + apply repeats_1. assumption.
-    + apply repeats_2.
-      destruct (in_split X x l2) as [l0 [l2' H3]].
-      apply H. simpl. left. reflexivity.
-      apply IHl1' with (l0 ++ l2').
-      * intros. apply In_app_iff. assert (In x0 l2). apply H. right. apply H1.
-        rewrite H3 in H2. apply In_app_iff in H2. destruct H2. left. apply H2.
-        right. destruct H2. rewrite H2 in HnIn. exfalso. apply HnIn. apply H1. assumption.
-      * apply f_equal with (f:=length) in H3. rewrite app_length in H3. rewrite add_comm in H3. simpl in H3. rewrite app_length. rewrite add_comm. rewrite H3 in H0. simpl in H0. apply Sn_le_Sm__n_le_m in H0. apply H0.
-Qed.
-
-
-Theorem pigeonhole_principle2: excluded_middle ->
   forall (X:Type) (l1 l2:list X),
   (forall x, In x l1 -> In x l2) ->
   length l2 < length l1 ->
@@ -2035,11 +2016,13 @@ Proof.
       destruct (in_split X x l2) as [l2' [l2'' H3]].
       { apply H. left. reflexivity. }
       apply IHl1' with (l2 := l2' ++ l2'').
-      * intros x0 H1. apply In_app_iff.
-        assert (In x0 l2). { apply H. right. apply H1. }
-        rewrite H3 in H2. apply In_app_iff in H2. destruct H2.
-        { left. apply H2. }
-        { right. destruct H2. rewrite H2 in HnIn. contradiction. apply H2. }
+      * intros. apply In_app_iff.
+        assert (In x0 l2).  
+        ** apply H. right. apply H1. 
+        ** rewrite H3 in H2. apply In_app_iff in H2. 
+           destruct H2.
+            *** left. apply H2. 
+            *** right. destruct H2. rewrite H2 in HnIn. contradiction. apply H2. 
       * apply f_equal with (f:=length) in H3. 
         rewrite app_length, add_comm  in H3. 
         simpl in H3. rewrite app_length, add_comm. 
