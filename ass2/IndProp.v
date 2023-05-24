@@ -1923,7 +1923,8 @@ Inductive NoDup {X : Type} : list X -> Prop :=
 
 (** Finally, state and prove one or more interesting theorems relating
     [disjoint], [NoDup] and [++] (list append).  *)
-Theorem disjoint_NoDup_app : forall (X:Type) (l1:list X) (l2:list X), NoDup l1 -> NoDup l2 -> disjoint l1 l2 -> NoDup (l1 ++ l2).
+
+Theorem disjoint_NoDup : forall (X:Type) (l1:list X) (l2:list X), NoDup l1 -> NoDup l2 -> disjoint l1 l2 -> NoDup (l1 ++ l2).
 Proof.
   intros X l1 l2 H1 H2 H.
 
