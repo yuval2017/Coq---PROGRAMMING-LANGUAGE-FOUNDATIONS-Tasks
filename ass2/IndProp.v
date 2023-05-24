@@ -1772,8 +1772,8 @@ Definition manual_grade_for_nostutter : option (nat*string) := None.
 
 Inductive merge {X : Type} : list X -> list X -> list X -> Prop :=
   | merge_nil : merge [] [] []
-  | merge_left : forall x l1 l2 l, merge l1 l2 l -> merge (x :: l1) l2 (x :: l)
-  | merge_right : forall x l1 l2 l, merge l1 l2 l -> merge l1 (x :: l2) (x :: l).
+  | merge_left x l1 l2 l  (P: merge l1 l2 l) : merge (x :: l1) l2 (x :: l)
+  | merge_right x l1 l2 l (P: merge l1 l2 l): merge l1 (x :: l2) (x :: l).
 
 
 
@@ -1841,8 +1841,8 @@ Definition manual_grade_for_filter_challenge : option (nat*string) := None.
 
 Inductive pal {X : Type} : list X -> Prop :=
   | pal_empty : pal []
-  | pal_singleton : forall x, pal [x]
-  | pal_cons : forall (x : X) (l : list X), pal l -> pal (x :: l ++ [x]).
+  | pal_singleton x: pal [x]
+  | pal_cons x l (P: pal l) : (pal (x :: l ++ [x])).
 
 Theorem pal_app_rev : forall (X : Type) (l : list X), pal (l ++ rev l).
 Proof.
@@ -1857,7 +1857,8 @@ Proof.
   induction H.
   - reflexivity.
   - reflexivity.
-  - simpl. rewrite rev_app_distr. simpl. rewrite <- IHpal. reflexivity.
+  - simpl. rewrite rev_app_distr. 
+    simpl. rewrite <- IHpal. reflexivity.
 Qed.
 
 
@@ -1889,7 +1890,6 @@ Definition manual_grade_for_pal_pal_app_rev_pal_rev : option (nat*string) := Non
    | [] => False
    | x' :: l' => x' = x \/ In A x l'
    end *)
-
 (** Your first task is to use [In] to define a proposition [disjoint X
     l1 l2], which should be provable exactly when [l1] and [l2] are
     lists (with elements of type X) that have no elements in
@@ -1897,9 +1897,9 @@ Definition manual_grade_for_pal_pal_app_rev_pal_rev : option (nat*string) := Non
       
 
 Inductive disjoint {X : Type} : list X -> list X -> Prop :=
-  | disjoint_nil : forall l, disjoint [] l
-  | disjoint_cons : forall (x : X) (l1 l2 : list X),
-      ~ In x l2 -> disjoint l1 l2 -> disjoint (x :: l1) l2.
+  | disjoint_nil l : disjoint [] l
+  | disjoint_cons x l1 l2 
+      (P: ~In x l2) (H: disjoint l1 l2): disjoint (x :: l1) l2.
 
 
 
@@ -1918,12 +1918,24 @@ Admitted.
 
 Inductive NoDup {X : Type} : list X -> Prop :=
   | NoDup_nil : NoDup []
-  | NoDup_cons : forall (x : X) (l : list X),
-      ~ In x l -> NoDup l -> NoDup (x :: l).
+  | NoDup_cons x l 
+      (P: ~ In x l) (H: NoDup l): NoDup (x :: l).
 
 (** Finally, state and prove one or more interesting theorems relating
     [disjoint], [NoDup] and [++] (list append).  *)
+Theorem disjoint_NoDup_app : forall (X:Type) (l1:list X) (l2:list X), NoDup l1 -> NoDup l2 -> disjoint l1 l2 -> NoDup (l1 ++ l2).
+Proof.
+  intros X l1 l2 H1 H2 H.
 
+  induction H as [| x l1 l2 P2 Hd].
+  - apply H2.
+  - simpl. apply NoDup_cons.
+    + intros contra. apply In_app_iff in contra. 
+      destruct contra as [x_in_l1 | x_in_l2].
+      * inversion H1. apply P in x_in_l1. contradiction.
+      * apply P2 in x_in_l2. contradiction.
+    + inversion H1. apply IHHd. assumption. assumption.
+Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_NoDup_disjoint_etc : option (nat*string) := None.
@@ -1962,7 +1974,6 @@ Inductive repeats {X:Type} : list X -> Prop :=
 .
 
 
-
 (* Do not modify the following line: *)
 Definition manual_grade_for_check_repeats : option (nat*string) := None.
 
@@ -1988,7 +1999,51 @@ Proof.
   - simpl. rewrite IHn'. rewrite <- plus_n_Sm. reflexivity.
 Qed.
 
+Theorem pigeonhole_principle: excluded_middle ->
+  forall (X:Type) (l1  l2:list X),
+  (forall x, In x l1 -> In x l2) ->
+  length l2 < length l1 ->
+  repeats l1.
+Proof.
+  intros EM X l1. induction l1 as [|x l1' IHl1'].
+  - intros. inversion H0.
+  - intros. destruct (EM (In x l1')) as [HIn | HnIn].
+    + apply repeats_1. assumption.
+    + apply repeats_2.
+      destruct (in_split X x l2) as [l0 [l2' H3]].
+      apply H. simpl. left. reflexivity.
+      apply IHl1' with (l0 ++ l2').
+      * intros. apply In_app_iff. assert (In x0 l2). apply H. right. apply H1.
+        rewrite H3 in H2. apply In_app_iff in H2. destruct H2. left. apply H2.
+        right. destruct H2. rewrite H2 in HnIn. exfalso. apply HnIn. apply H1. assumption.
+      * apply f_equal with (f:=length) in H3. rewrite app_length in H3. rewrite add_comm in H3. simpl in H3. rewrite app_length. rewrite add_comm. rewrite H3 in H0. simpl in H0. apply Sn_le_Sm__n_le_m in H0. apply H0.
+Qed.
 
+
+Theorem pigeonhole_principle2: excluded_middle ->
+  forall (X:Type) (l1 l2:list X),
+  (forall x, In x l1 -> In x l2) ->
+  length l2 < length l1 ->
+  repeats l1.
+Proof.
+  intros EM X l1. induction l1 as [|x l1' IHl1'].
+  - intros. inversion H0.
+  - intros. destruct (EM (In x l1')) as [HIn | HnIn].
+    + apply repeats_1. assumption.
+    + apply repeats_2.
+      destruct (in_split X x l2) as [l2' [l2'' H3]].
+      { apply H. left. reflexivity. }
+      apply IHl1' with (l2 := l2' ++ l2'').
+      * intros x0 H1. apply In_app_iff.
+        assert (In x0 l2). { apply H. right. apply H1. }
+        rewrite H3 in H2. apply In_app_iff in H2. destruct H2.
+        { left. apply H2. }
+        { right. destruct H2. rewrite H2 in HnIn. contradiction. apply H2. }
+      * apply f_equal with (f:=length) in H3. 
+        rewrite app_length, add_comm  in H3. 
+        simpl in H3. rewrite app_length, add_comm. 
+        rewrite H3 in H0. simpl in H0. 
+        apply Sn_le_Sm__n_le_m in H0. apply H0.
 Qed.
 
 (** [] *)
