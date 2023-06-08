@@ -1970,8 +1970,8 @@ Qed.
 
 
 Inductive repeats {X:Type} : list X -> Prop :=
-  | repeats_1 x l (P: In x l): repeats (x :: l)
-  | repeats_2 x l (H: repeats l): repeats (x :: l)
+  | r_1 x l (P: In x l): repeats (x :: l)
+  | r_2 x l (H: repeats l): repeats (x :: l)
 .
 
 
@@ -2010,25 +2010,27 @@ Theorem pigeonhole_principle: excluded_middle ->
 Proof.
   intros EM X l1. induction l1 as [|x l1' IHl1'].
   - intros. inversion H0.
-  - intros. destruct (EM (In x l1')) as [HIn | HnIn].
-    + apply repeats_1. assumption.
-    + apply repeats_2.
+  - intros l2 H H0. 
+    destruct (EM (In x l1')) as [HIn | HnIn].
+    + apply r_1. assumption.
+    + apply r_2.
       destruct (in_split X x l2) as [l2' [l2'' H3]].
-      { apply H. left. reflexivity. }
-      apply IHl1' with (l2 := l2' ++ l2'').
-      * intros. apply In_app_iff.
-        assert (In x0 l2).  
-        ** apply H. right. apply H1. 
-        ** rewrite H3 in H2. apply In_app_iff in H2. 
+      * apply H. left. reflexivity. 
+      * apply IHl1' with (l2 := l2' ++ l2'').
+      ** intros x0 H1. apply In_app_iff.
+        assert (In x0 l2) as H2.  
+        *** apply H. right. apply H1. 
+        *** rewrite H3 in H2. apply In_app_iff in H2. 
            destruct H2.
-            *** left. apply H2. 
-            *** right. destruct H2. rewrite H2 in HnIn. contradiction. apply H2. 
-      * apply f_equal with (f:=length) in H3. 
-        rewrite app_length, add_comm  in H3. 
-        simpl in H3. rewrite app_length, add_comm. 
+            **** left. apply H2. 
+            **** right. destruct H2. rewrite H2 in HnIn. contradiction. apply H2. 
+      ** apply f_equal with (f:=length) in H3. 
+        rewrite app_length in H3. simpl in H3. rewrite add_comm in H3. 
+        simpl in H3. rewrite add_comm in H3. rewrite app_length.
         rewrite H3 in H0. simpl in H0. 
         apply Sn_le_Sm__n_le_m in H0. apply H0.
 Qed.
+
 
 (** [] *)
 

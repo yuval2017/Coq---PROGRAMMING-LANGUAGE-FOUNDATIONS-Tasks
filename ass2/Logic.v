@@ -1750,7 +1750,6 @@ Proof.
   intros not_not_PQ.
   unfold not in not_not_PQ.
   apply H.
-  
   split.
   - intros.
     apply not_not_PQ. left. apply H0.

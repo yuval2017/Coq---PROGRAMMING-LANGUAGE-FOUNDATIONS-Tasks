@@ -626,8 +626,11 @@ Definition singleton : forall (X:Type) (x:X), []++[x] == x::[]  :=
 Lemma equality__leibniz_equality : forall (X : Type) (x y: X),
   x == y -> forall P:X->Prop, P x -> P y.
 Proof.
-(* FILL IN HERE *) Admitted.
-(** [] *)
+  intros X x y H P Hx.
+  destruct H. 
+  apply Hx. 
+  Qed.
+
 
 (** **** Exercise: 3 stars, standard, optional (leibniz_equality__equality) 
 
@@ -639,7 +642,10 @@ Proof.
 Lemma leibniz_equality__equality : forall (X : Type) (x y: X),
   (forall P:X->Prop, P x -> P y) -> x == y.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros X x y H.
+  apply H.
+  apply eq_refl .
+Qed.
 
 (** [] *)
 
@@ -765,4 +771,99 @@ Fail Definition falso : False := infinite_loop 0.
     validity from scratch.  Only theorems whose proofs pass the
     type-checker can be used in further proof developments.  *)
 
-(* 2020-11-01 19:10 *)
+
+
+(* ################################################################# *)
+(** * Proof Irrelevance (Advanced) *)
+
+(** In \CHAP{Logic} we saw that functional extensionality could be
+    added to Coq. A similar notion about propositions can also
+    be defined (and added as an axiom, if desired): *)
+
+Definition propositional_extensionality : Prop :=
+  forall (P Q : Prop), (P <-> Q) -> P = Q.
+
+(** Propositional extensionality asserts that if two propositions are
+    equivalent -- i.e., each implies the other -- then they are in
+    fact equal. The _proof objects_ for the propositions might be
+    syntactically different terms. But propositional extensionality
+    overlooks that, just as functional extensionality overlooks the
+    syntactic differences between functions. *)
+
+
+(** **** Exercise: 1 star, standard (pe_implies_or_eq) 
+
+ Prove the following consequence of propositional extensionality. *)
+
+Theorem  pe_implies_or_eq :
+  propositional_extensionality ->
+  forall (P Q : Prop), (P \/ Q) = (Q \/ P).
+Proof.
+  intros pe P Q.
+  unfold propositional_extensionality in pe.
+  apply pe.
+  split.
+  - intros [HP | HQ].
+    + right. assumption.
+    + left. assumption.
+  - intros [HQ | HP].
+    + right. assumption.
+    + left. assumption.
+Qed.
+(** [] *)
+
+
+(** **** Exercise: 1 star, standard (pe_implies_true_eq) 
+
+Prove that if a proposition [P] is provable, then it is equal to
+    [True] -- as a consequence of propositional extensionality. *)
+
+Lemma pe_implies_true_eq :
+  propositional_extensionality ->
+  forall (P : Prop), P -> True = P.
+Proof.
+  intros pe P H.
+  unfold propositional_extensionality in pe.
+  apply pe.
+  split.
+  - intros. assumption.
+  - intros.
+    apply I.
+Qed.
+(** [] *)
+
+
+(** **** Exercise: 3 stars, standard (pe_implies_pi) 
+
+ Acknowledgment: this theorem and its proof technique are inspired
+    by Gert Smolka's manuscript Modeling and Proving in Computational
+    Type Theory Using the Coq Proof Assistant, 2021. 
+
+ Another, perhaps surprising, consequence of propositional
+    extensionality is that it implies _proof irrelevance_, which
+    asserts that all proof objects for a proposition are equal. *)
+
+Definition proof_irrelevance : Prop :=
+  forall (P : Prop) (pf1 pf2 : P), pf1 = pf2.
+
+ (** Prove that fact. Use [pe_implies_true_eq] to establish that the
+    proposition [P] in [proof_irrelevance] is equal to [True]. Leverage
+    that equality to establish that both proofs objects [pf1] and
+    [pf2] must be just [I]. *)
+
+Theorem pe_implies_pi :
+  propositional_extensionality -> proof_irrelevance.
+Proof.
+  intros pe.
+  unfold proof_irrelevance.
+  unfold propositional_extensionality in pe.
+  intros P pf1 pf2.
+  assert (True = P) as H.
+  - apply (pe_implies_true_eq pe P).
+    assumption.
+  - destruct H.
+    destruct pf1.
+    destruct pf2. reflexivity.
+Qed.
+
+

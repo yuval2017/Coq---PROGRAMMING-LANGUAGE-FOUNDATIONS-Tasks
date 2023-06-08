@@ -1102,12 +1102,16 @@ Proof.
   intros n. induction n as [| n' IHn'].
   - (* n = 0 *) 
     destruct m as [| m'].
-    + (* m = 0 *) reflexivity.
-    + (* m = S m' *) reflexivity.
+    + (* m = 0 *) 
+    reflexivity.
+    + (* m = S m' *) 
+    reflexivity.
   - (* n = S n' *) 
     destruct m as [| m'].
-    + (* m = 0 *) reflexivity.
-    + (* m = S m' *) apply IHn'.
+    + (* m = 0 *) 
+      reflexivity.
+    + (* m = S m' *) 
+      apply IHn'.
 Qed.
 (** [] *)
 
