@@ -1620,9 +1620,8 @@ Proof.
       [loopdef] terminates.  Most of the cases are immediately
       contradictory (and so can be solved in one step with
       [discriminate]). *)
-induction contra; inversion Heqloopdef; subst; try discriminate;
-          apply IHcontra2; reflexivity. Qed.
-(** [] *)
+induction contra; inversion Heqloopdef; subst; auto. discriminate.
+Qed.
 
 (** **** Exercise: 3 stars, standard (no_whiles_eqv) 
 
@@ -1658,19 +1657,16 @@ Theorem no_whiles_eqv:
    forall c, no_whiles c = true <-> no_whilesR c.
 Proof.
   intros c.
-  split.
-  - intros H. induction c;
+  split ; intros H.
+  - induction c;
       try constructor;
       try (inversion H as [H1]);
       try (apply andb_true_iff in H1);
       try (destruct H1 as [H1 H2]);
-      try (apply IHc1; apply H1);
-      try (apply IHc2; apply H2).
-  - intros H. induction H; simpl; try reflexivity.
-    + apply andb_true_iff. split.
-      * apply IHno_whilesR1.
-      * apply IHno_whilesR2.
-    + rewrite IHno_whilesR1. simpl. assumption.
+      try (auto).
+  - induction H; simpl; try reflexivity.
+    + apply andb_true_iff. split; auto.
+    + rewrite IHno_whilesR1. auto.
 Qed.
 
 
@@ -2057,29 +2053,7 @@ Proof.
 Qed.
 
 
-Theorem ceval_deterministic2: forall (c:com) st st1 st2 s1 s2,
-     st =[ c ]=> st1 / s1 ->
-     st =[ c ]=> st2 / s2 ->
-     st1 = st2 /\ s1 = s2.
-Proof.
-  intros c st st1 st2 s1 s2 E1 E2.
-  generalize dependent st2.
-  generalize dependent s2.
-  induction E1;
-    intros s2 st2 E2;
-    inversion E2 as [ | | | | | | | | | ];
-    subst;
-    try (split; reflexivity);
-    try (apply IHE1; assumption);
-    try (rewrite H in H0; discriminate).
-  + destruct (IHE1 SContinue st'0). assumption. discriminate.
-  + destruct (IHE1_1 SBreak st2). assumption. discriminate.
-  + destruct (IHE1_1 SContinue st'0). assumption. subst. apply IHE1_2. assumption.
-  + split. apply IHE1 with SBreak. assumption. reflexivity.
-  + destruct (IHE1 SContinue st'0). assumption. discriminate.
-  + destruct (IHE1_1 SBreak st2). assumption. discriminate.
-  + destruct (IHE1_1 SContinue st'0). assumption. subst. apply IHE1_2. assumption.
-Qed.
+
 Ltac assumption_then_solve :=
   try assumption; try subst; repeat auto.
 Ltac assumption_then_discriminate :=
@@ -2119,8 +2093,6 @@ Ltac destruct_IHHceval1_continue :=
     H : ?st =[ ?c1 ]=> ?st'0 / SContinue
     |- _ =>
     destruct (IHHceval1_1 SContinue st'0) as [H']
-
-
   end.
 
 (** **** Exercise: 4 stars, advanced, optional (ceval_deterministic)  *)
@@ -2147,6 +2119,8 @@ Qed.
 (** [] *)
 End BreakImp.
 
+Module ForImp.
+
 (** **** Exercise: 4 stars, standard, optional (add_for_loop) 
 
     Add C-style [for] loops to the language of commands, update the
@@ -2162,8 +2136,221 @@ End BreakImp.
     about making up a concrete Notation for [for] loops, but feel free
     to play with this too if you like.) *)
 
-(* FILL IN HERE
 
-    [] *)
+
+Inductive com : Type :=
+  | CSkip
+  | CBreak                        (* <--- NEW *)
+  | CAss (x : string) (a : aexp)
+  | CSeq (c1 c2 : com)
+  | CIf (b : bexp) (c1 c2 : com)
+  | CWhile (b : bexp) (c : com)
+  | CFor (b : bexp) (aInit dBody cEnd : com).
+
+
+
+Notation "'break'" := CBreak (in custom com at level 0).
+Notation "'skip'"  :=
+         CSkip (in custom com at level 0) : com_scope.
+Notation "x := y"  :=
+         (CAss x y)
+            (in custom com at level 0, x constr at level 0,
+             y at level 85, no associativity) : com_scope.
+Notation "x ; y" :=
+         (CSeq x y)
+           (in custom com at level 90, right associativity) : com_scope.
+Notation "'if' x 'then' y 'else' z 'end'" :=
+         (CIf x y z)
+           (in custom com at level 89, x at level 99,
+            y at level 99, z at level 99) : com_scope.
+Notation "'while' x 'do' y 'end'" :=
+         (CWhile x y)
+            (in custom com at level 89, x at level 99, y at level 99) : com_scope.
+
+Inductive result : Type :=
+  | SContinue
+  | SBreak.
+
+Reserved Notation "st '=[' c ']=>' st' '/' s"
+     (at level 40, c custom com at level 99, st' constr at next level).
+
+
+
+
+Notation "'break'" := CBreak (in custom com at level 0).
+Notation "'skip'"  :=
+         CSkip (in custom com at level 0) : com_scope.
+Notation "x := y"  :=
+         (CAss x y)
+            (in custom com at level 0, x constr at level 0,
+             y at level 85, no associativity) : com_scope.
+Notation "x ; y" :=
+         (CSeq x y)
+           (in custom com at level 90, right associativity) : com_scope.
+Notation "'if' x 'then' y 'else' z 'end'" :=
+         (CIf x y z)
+           (in custom com at level 89, x at level 99,
+            y at level 99, z at level 99) : com_scope.
+Notation "'while' x 'do' y 'end'" :=
+         (CWhile x y)
+            (in custom com at level 89, x at level 99, y at level 99) : com_scope.
+Notation "'for' aInit b dBody 'do' cEnd 'end'" :=
+         (CFor b aInit dBody cEnd)
+            (in custom com at level 89, aInit at level 99, b at level 99, dBody at level 99, cEnd at level 99) : com_scope.
+
+
+
+
+
+Inductive ceval : com -> state -> result -> state -> Prop :=
+  | E_Skip : forall st,
+      st =[ CSkip ]=> st / SContinue
+  | E_Break : forall st,
+      st =[ break ]=> st / SBreak
+  | E_Ass : forall st x a n,
+      aeval st a = n ->
+      st =[ x := a ]=> (x !-> n ; st) / SContinue
+  | E_Seq_Break : forall c1 c2 st st',
+      st =[ c1 ]=> st' / SBreak ->
+      st =[ c1 ; c2 ]=> st' / SBreak
+  | E_Seq_Continue : forall c1 c2 st st' st'' s,
+      st =[ c1 ]=> st' / SContinue ->
+      st' =[ c2 ]=> st'' / s ->
+      st =[ c1 ; c2 ]=> st'' / s
+  | E_IfTrue : forall st st' b c1 c2 s,
+      beval st b = true ->
+      st =[ c1 ]=> st' / s ->
+      st =[ if b then c1 else c2 end ]=> st' / s
+  | E_IfFalse : forall st st' b c1 c2 s,
+      beval st b = false ->
+      st =[ c2 ]=> st' / s ->
+      st =[ if b then c1 else c2 end ]=> st' / s
+   | E_WhileEnd : forall b st c,
+      beval st b = false ->
+      st =[ while b do c end ]=> st / SContinue
+ | E_WhileLoop_Break : forall st st' b c,
+      beval st b = true ->
+      st =[ c ]=> st' / SBreak ->
+      st =[ while b do c end ]=> st' / SContinue
+  | E_WhileLoop_Continue : forall st st' st'' b c,
+      beval st b = true ->
+      st =[ c ]=> st' / SContinue ->
+      st' =[ while b do c end ]=> st'' / SContinue ->
+      st =[ while b do c end ]=> st'' / SContinue
+  | E_For : forall b st st' aInit dBody c s,
+      st =[ aInit ; while b do (c ; dBody) end ]=> st' / s ->
+      st =[ CFor b aInit dBody c ]=> st' / s
+  where "st '=[' c ']=>' st' '/' s" := (ceval c st s st').
+
+
+(** Now prove the following properties of your definition of [ceval]: *)
+
+Theorem break_ignore : forall c st st' s,
+     st =[ break; c ]=> st' / s ->
+     st = st'.
+ Proof.
+  intros.
+    inversion H; 
+    inversion H5. 
+    reflexivity. inversion H2.
+Qed.
+
+Theorem while_continue : forall b c st st' s,
+  st =[ while b do c end ]=> st' / s ->
+  s = SContinue.
+Proof.
+  intros.
+  inversion H;
+  reflexivity.
+Qed.
+
+Theorem while_stops_on_break : forall b c st st',
+  beval st b = true ->
+  st =[ c ]=> st' / SBreak ->
+  st =[ while b do c end ]=> st' / SContinue.
+Proof.
+  intros b c st st' Hb Hc.
+  eapply E_WhileLoop_Break; assumption.
+Qed.
+
+(** **** Exercise: 3 stars, advanced, optional (while_break_true)  *)
+Theorem while_break_true : forall b c st st',
+  st =[ while b do c end ]=> st' / SContinue ->
+  beval st' b = true ->
+  exists st'', st'' =[ c ]=> st' / SBreak.
+Proof.
+  intros b c st st' Hceval Hb.
+  remember <{ while b do c end }> as loop eqn:Heqloop.
+   induction Hceval;
+   try (inversion Heqloop; subst; simpl in *; congruence).
+    - injection Heqloop as Hb' Hc' ; subst. exists st. assumption.
+    - eauto.
+Qed.
+
+
+
+Ltac assumption_then_solve :=
+  try assumption; try subst; repeat auto.
+Ltac assumption_then_discriminate :=
+  try assumption; try discriminate.
+
+Ltac destruct_IHHceval1_continue :=
+  match goal with
+  | IHHceval1: forall (s2 : result) (st2 : state),
+               ?st =[ ?c1 ]=> st2 / s2 ->
+               ?st' = st2 /\ SBreak = s2,
+    st'0: state,
+    H : ?st =[ ?c1 ]=> ?st'0 / SContinue
+    |- _ =>
+    destruct (IHHceval1 SContinue st'0) as [H']
+
+   | IHHceval1: forall (s2 : result) (st2 : state),
+               ?st =[ ?c1 ]=> st2 / s2 ->
+               ?st' = st2 /\ SBreak = s2,
+    st'0: state,
+    H : ?st =[ ?c1 ]=> ?st2 / SBreak
+    |- _ =>
+    destruct (IHHceval1 SBreak st2) as [H']
+
+  | IHHceval1_1 : forall (s2 : result) (st2 : state),
+              ?st =[ ?c1 ]=> st2 / s2 ->
+              ?st' = st2 /\ SContinue = s2,
+    
+    st2: state,
+    H : ?st =[ ?c1 ]=> ?st2 / SBreak |- _ =>
+    destruct (IHHceval1_1 SBreak st2) as [H'] 
+
+  | IHHceval1_1: forall (s2 : result) (st2 : state),
+               ?st =[ ?c1 ]=> st2 / s2 ->
+               ?st' = st2 /\ SContinue = s2,
+                
+    st'0: state,
+    H : ?st =[ ?c1 ]=> ?st'0 / SContinue
+    |- _ =>
+    destruct (IHHceval1_1 SContinue st'0) as [H']
+  end.
+
+(** **** Exercise: 4 stars, advanced, optional (ceval_deterministic)  *)
+Theorem ceval_deterministic: forall (c:com) st st1 st2 s1 s2,
+     st =[ c ]=> st1 / s1 ->
+     st =[ c ]=> st2 / s2 ->
+     st1 = st2 /\ s1 = s2.
+Proof.
+  intros c st st1 st2 s1 s2 Hceval1 Hceval2.
+  generalize dependent st2.
+  generalize dependent s2.
+  induction Hceval1; intros s2 st2 Hceval2;
+  inversion Hceval2 as [ | | | | | | | | | | ];
+    subst;
+    try (split; reflexivity);
+    try (apply IHHceval1; assumption);
+    try (rewrite H in H0);
+    try discriminate;
+    destruct_IHHceval1_continue;
+    assumption_then_discriminate;
+    assumption_then_solve.
+Qed.
+
+End ForImp.
 
 (* 2020-11-01 19:11 *)
