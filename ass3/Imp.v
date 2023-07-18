@@ -2053,7 +2053,7 @@ Proof.
 Qed.
 
 
-
+(**my tactics**)
 Ltac assumption_then_solve :=
   try assumption; try subst; repeat auto.
 Ltac assumption_then_discriminate :=
@@ -2105,7 +2105,7 @@ Proof.
   generalize dependent st2.
   generalize dependent s2.
   induction Hceval1; intros s2 st2 Hceval2;
-  inversion Hceval2 as [ | | | | | | | | | ];
+   inversion Hceval2 as [ | | | | | | | | | ];
     subst;
     try (split; reflexivity);
     try (apply IHHceval1; assumption);

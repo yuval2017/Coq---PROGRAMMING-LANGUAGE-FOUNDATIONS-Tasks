@@ -1342,26 +1342,28 @@ Lemma re_not_empty_correct : forall T (re : reg_exp T),
 Proof.
   intros T re. split.
   - intros [s H]. induction H.
-    + simpl. reflexivity.
-    + simpl. reflexivity.
+    + auto.
+    + auto.
     + simpl. rewrite IHexp_match1. rewrite IHexp_match2. reflexivity.
     + simpl. rewrite IHexp_match. simpl. reflexivity.
-    + simpl. rewrite IHexp_match. destruct (re_not_empty re1). reflexivity. reflexivity.
-    + simpl. reflexivity.
-    + simpl. reflexivity.
+    + simpl. rewrite IHexp_match. destruct (re_not_empty re1).
+      -- auto. 
+      -- auto.
+    + auto.
+    + auto.
   - intros H. induction re.
     + discriminate H.
-    + exists []. apply MEmpty.
-    + exists [t]. apply MChar.
+    + exists []. constructor.
+    + exists [t]. constructor.
     + simpl in H. apply andb_true_iff in H.
       destruct H as [H1 H2]. apply IHre1 in H1. apply IHre2 in H2.
-      destruct H1 as [s1 H1']. destruct H2 as [s2 H2']. exists (s1 ++ s2). apply MApp.
+      destruct H1 as [s1 H1']. destruct H2 as [s2 H2']. exists (s1 ++ s2). constructor.
       * assumption.
       * assumption.
     + simpl in H. apply orb_true_iff in H. destruct H as [H1 | H2].
-      * apply IHre1 in H1.  destruct H1 as [s1 H1']. exists s1. apply MUnionL. assumption.
+      * apply IHre1 in H1.  destruct H1 as [s1 H1']. exists s1. constructor. assumption.
       * apply IHre2 in H2. destruct H2 as [s2 H2']. exists s2. apply MUnionR. assumption.
-    + exists []. apply MStar0. 
+    + exists []. constructor. 
 Qed.
 (* ================================================================= *)
 (** ** The [remember] Tactic *)
@@ -1515,9 +1517,9 @@ Proof.
   - destruct (IH2 Heqre') as [ss' [H1 H2]].
     injection Heqre' as Heqre'. destruct Heqre'.
     exists (s1 :: ss'). split.
-    + simpl. rewrite <- H1. reflexivity.
+    + simpl. subst. reflexivity.
     + intros s' HIn. destruct HIn.
-      * rewrite <- H. apply Hmatch1.
+      * subst. assumption.
       * apply H2 in H. assumption.
 Qed.
 Lemma MStar'' : forall T (s : list T) (re : reg_exp T),
@@ -1683,11 +1685,12 @@ Proof.
     intros Hlen. simpl in Hlen. rewrite -> app_length in Hlen. apply add_le_cases in Hlen. destruct Hlen as [H1 | H2].
     + apply IH1 in H1. destruct H1 as [s1' [s2' [s3' [HApp [HNe HNapp2]]]]].
       exists s1', s2', (s3' ++ s2). split. 
-      * rewrite ->  HApp. rewrite <- app_assoc. rewrite <- app_assoc. reflexivity.
-      * split. assumption. intros.  
+      * subst. rewrite <- app_assoc. rewrite <- app_assoc. reflexivity.
+      * split. assumption. 
+        intros.  
         rewrite -> app_assoc. rewrite -> app_assoc. rewrite <- app_assoc with T s1' (napp m s2') s3'.
         apply MApp.
-       ** apply HNapp2.
+       ** auto.
        ** assumption.
     + apply IH2 in H2. destruct H2 as [s1' [s2' [s3' [HApp [HNe HNapp2]]]]].
       exists (s1 ++ s1'), s2', s3'. split.
@@ -1696,28 +1699,28 @@ Proof.
         ** assumption.
         ** intros. rewrite <- app_assoc. apply MApp.
           *** assumption.
-          *** apply HNapp2.
-  - (* MUnionR *)
+          *** auto.
+  - (* MUnionL *)
     intros H1. simpl in H1. apply plus_le in H1. destruct H1 as [H2 H3].
     apply IH in H2. destruct H2 as [s1' [s2' [s3' [HApp [HNe HNapp2]]]]].
     exists s1', s2', s3'. split.
-    + apply HApp.
+    + auto.
     + split.
       * assumption.
-      * intros. apply MUnionL. apply HNapp2.
+      * intros. constructor. auto.
   - (* MUnionR *)
     intros H1. simpl in H1. apply plus_le in H1. destruct H1 as [H2 H3].
     apply IH in H3. destruct H3 as [s1' [s2' [s3' [HApp [HNe HNapp2]]]]].
     exists s1', s2', s3'. split.
-    + apply HApp.
+    + assumption.
     + split.
       ** assumption.
-      ** intros m. apply MUnionR. apply HNapp2.
+      ** intros m. apply MUnionR. auto.
   - (* MStar0 *) 
     intros H1. inversion H1 as [H1'|].
     assert (H' : (pumping_constant re) >= 1).
     + apply pumping_constant_ge_1.
-    + rewrite H1' in H'. inversion H'.
+    + lia.
   - (* MStarApp *)
     intros H1.
     rewrite app_length in H1.
@@ -1728,7 +1731,7 @@ Proof.
           *** assumption.
         ** left. simpl. lia.
       *  exists [], (s1 ++ s2), []. split.
-        ** rewrite <- app_assoc. rewrite app_nil_r. simpl. reflexivity.
+        ** rewrite <- app_assoc. rewrite app_nil_r. auto.
         ** split.
            *** destruct H' as [H2 | H3].
               **** destruct s1 as [| s1'].
@@ -1780,7 +1783,7 @@ Proof.
           ** lia.
           ** lia.
         * apply IH2 in H2'. destruct H2' as [s1' [s2' [s3' [Happ [Hne [Hlen2 Hnapp]]]]]].
-         exists (s1 ++ s1'), s2', s3'. split. {rewrite Happ. rewrite app_assoc. reflexivity. }
+         exists (s1 ++ s1'), s2', s3'. split. {subst. rewrite app_assoc. reflexivity. }
          {split.  
           - assumption.
           - split. 
@@ -1805,12 +1808,12 @@ Proof.
       + apply IH in H1. destruct H1 as [s1' [s2' [s3' [Happ [Hne [Hlen Hnapp]]]]]].
         exists s1', s2', s3'.
         split.     
-        ** apply Happ.
+        ** assumption.
         ** split.
           *** assumption.
           *** split. 
             **** simpl. lia.
-            **** simpl. intros. apply MUnionL. apply Hnapp.
+            **** simpl. intros. apply MUnionL. auto.
     - (* MUnionL *)
       intros H. simpl in H.
       apply plus_le in H. destruct H as [H1 H2].
@@ -1846,7 +1849,7 @@ Proof.
                 ***** simpl. induction m.
                     ****** apply MStar0.
                     ****** simpl. rewrite <- app_assoc. apply star_app. assumption.
-                          apply IHm.
+                            assumption.
             ** apply IH2 in H2. destruct H2 as [s1' [s2' [s3' [Happ [Hne [Hlen Hnapp]]]]]].
                exists s1', s2', s3'. split.
                *** simpl. rewrite Happ. reflexivity.
