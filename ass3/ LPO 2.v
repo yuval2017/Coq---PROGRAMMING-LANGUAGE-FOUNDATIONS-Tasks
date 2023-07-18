@@ -76,7 +76,47 @@ Qed.
 (**------------------**)
 
 
+Require Import Classical_Prop.
+Lemma f_n_is_false_forall : forall (n : nat) (f : nat -> bool), ~ (exists x : nat, f x = true) -> f n = false.
+Proof.
+  intros n f H_not_exists_true.
+  destruct (f n) eqn:Heq_fn.
+  - (* Case 1: f n = true *)
+    exfalso.
+    apply H_not_exists_true.
+    exists n.
+    assumption.
+  - (* Case 2: f n = false *)
+    reflexivity.
+Qed.
 
+
+Theorem semi_dec_LPO (P : nat -> Prop) : (forall P, semi_dec P -> dec P) -> LPO.
+Proof.
+  unfold LPO.
+  intros H f.
+
+  (* We will use LEM to split the cases for f n = true and f n = false *)
+  destruct (classic (exists n, f n = true)) as [H_true | H_false].
+  - (* Case 1: There exists an n such that f n = true *)
+    left. assumption.
+
+  - (* Case 2: For all n, f n = false *)
+    right.
+    intros n.
+
+    (* We need to show that f n = false *)
+    assert (f n = false) as H_false_n.
+    {
+      (* Suppose f n = true *)
+      destruct (classic (f n = true)) as [H_case1 | H_case2].
+      - (* Case 2.1: f n = true *)
+        apply (f_n_is_false_forall n) in H_false. assumption.
+      - (* Case 2.2: f n = false *)
+        apply (f_n_is_false_forall n) in H_false. assumption.
+    }
+    assumption.
+Qed.
 
 
 (*------ Part 3 ------*)
@@ -93,70 +133,5 @@ Proof.
 Qed.
 
 (**------------------**)
-
-
-
-Definition print (f : nat -> bool) (k : nat) : nat := if (f k) then 1 else 0.
-  
-Definition P_print (f : nat -> bool) := fun n => exists k, print f k = n.
-
-Lemma true_iff_print_one : forall (f : nat -> bool) (k : nat),
-  f k = true <-> print f k = 1.
-Proof.
-  intros f k.
-  unfold print.
-  destruct (f k) eqn:Hf.
-  - (* f k = true *)
-    split.
-    + intros _. reflexivity.
-    + intros _. reflexivity.
-  - (* f k = false *)
-    split.
-    + intros H. discriminate H.
-    + intros H. discriminate H.
-Qed.
-Theorem semi_dec_LPO (P : nat -> Prop) : (forall P, semi_dec P -> dec P) -> LPO.
-Proof.
-  unfold LPO.
-  intros H f. 
-  assert (semi_dec (fun n => f n = true)) as HQ_semi_dec.
-  {
-    exists (fun n k => if Nat.eqb k n then f n else false).
-    intros n.
-    split.
-    - intros H1. exists n. rewrite eqb_x_x_is_true. assumption.
-    - intros [k Hk].
-       destruct (Nat.eqb k n) eqn:H1. 
-      + assumption. 
-      + discriminate.
-  }
-    right. intros n. destruct (H (fun n => f n = false)) as [d Hd]. 
-    - apply enum_sdec. assumption.
-    - destruct (d n) eqn:HdH.
-      + exfalso. destruct (f n) eqn: HfH.
-        * 
-    
-      + apply Hd in Hdn.
-     destruct (H Q) as [d Hd].
-    -  assumption. 
-    - right. intros n. destruct (d n) eqn: Hdn.
-      + apply Hd in Hdn.
-    - left. unfold semi_dec in HQ_semi_dec. destruct HQ_semi_dec as [s Hs].
-    +  
-
-  
-
-unfold semi_dec in H. destruct (H P) as [d Hd]. 
-   - apply enum_sdec. unfold enum.
- exists (print f). reflexivity.
-   - left. destruct (d (print f 1)) eqn:Heq.
-      + destruct (Hd 1). lia. apply H1 in Heq. unfold P_print in Heq. destruct Heq as [k Hk].
-        exists k. apply true_iff_print_one. assumption.
-      + 
-
-
-
-
-
 
 
